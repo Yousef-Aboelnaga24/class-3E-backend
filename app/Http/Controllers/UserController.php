@@ -20,12 +20,15 @@ class UserController extends Controller
     }
 
     // 👀 GET /api/users/{id} (Public profile)
-    public function show(string $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
-        $user = User::select('id', 'name', 'avatar', 'bio', 'role', 'location', 'created_at')
+        $user = User::select('id', 'name', 'avatar', 'role', 'class_code_id', 'created_at')
             ->findOrFail($id);
 
-        return response()->json($user);
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+        ]);
     }
 
     // 👀 GET /api/users/{id}/posts (Public posts)
@@ -52,9 +55,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'bio' => 'nullable|string',
             'avatar' => 'nullable|string',
-            'location' => 'nullable|string',
         ]);
 
         $user->update($validated);

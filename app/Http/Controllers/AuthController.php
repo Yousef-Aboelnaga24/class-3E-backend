@@ -16,9 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthService $authService)
-    {
-    }
+    public function __construct(private readonly AuthService $authService) {}
 
     public function register(RegisterRequest $request): JsonResponse
     {
@@ -60,7 +58,7 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json(['message' => 'Logged out successfully.']);
     }
@@ -70,9 +68,9 @@ class AuthController extends Controller
         return new UserResource($request->user());
     }
 
-    public function verifyEmail(Request $request): JsonResponse
+    public function verifyEmail($id): JsonResponse
     {
-        $user = User::findOrFail($request->id);
+        $user = User::findOrFail($id);
 
         if ($user->hasVerifiedEmail()) {
             return response()->json(['message' => 'Email already verified.']);

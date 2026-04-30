@@ -4,6 +4,7 @@ use App\Http\Controllers\{
     AuthController,
     ClassCodeController,
     CommentController,
+    ConfessionController,
     MessageController,
     NotificationController,
     PostController,
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 | Public Auth
 |--------------------------------------------------------------------------
 */
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/email/verify/{id}', [AuthController::class, 'verifyEmail'])
@@ -68,6 +70,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // timeline
         Route::post('/timeline', [TimelineEventController::class, 'store']);
     });
+
+    /*
+    | Timeline (public view inside auth)
+    */
+    Route::get('/timeline', [TimelineEventController::class, 'index']);
+
+    /*
+    | Confessions
+    */
+    Route::get('/confessions', [ConfessionController::class, 'index']);
+    Route::post('/confessions', [ConfessionController::class, 'store']);
 
     /*
     | Posts (student + admin)

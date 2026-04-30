@@ -15,7 +15,7 @@ class ProfileController extends Controller
 
         $request->validate([
             'name' => 'sometimes|string|max:255',
-            'avatar' => 'sometimes|image|max:2048', // 2MB max
+            'avatar' => 'sometimes|image|max:2048',
         ]);
 
         if ($request->has('name')) {
