@@ -13,6 +13,7 @@ class TimelineEventResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
+            'place' => $this->place,
             'event_date' => $this->event_date->format('Y-m-d'),
             'icon_type' => $this->icon_type ?? 'star',
             'color' => $this->color ?? 'amber',

@@ -15,11 +15,16 @@ class ProfileController extends Controller
 
         $request->validate([
             'name' => 'sometimes|string|max:255',
+            'bio' => 'nullable|string|max:500',
             'avatar' => 'sometimes|image|max:2048',
         ]);
 
         if ($request->has('name')) {
             $user->name = $request->name;
+        }
+
+        if ($request->has('bio')) {
+            $user->bio = $request->bio;
         }
 
         if ($request->hasFile('avatar')) {

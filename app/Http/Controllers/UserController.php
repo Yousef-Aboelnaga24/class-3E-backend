@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostResource;
+use App\Http\Resources\UserResource;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -9,69 +11,73 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    // 👀 GET /api/users
     public function index(): JsonResponse
     {
-        abort_unless(request()->user()?->isAdmin(), 403, 'Unauthorized for this action.');
+        $authUser = request()->user();
 
-        return response()->json(
-            User::select('id', 'name', 'email', 'avatar', 'role', 'class_code_id', 'created_at')->get()
-        );
+        $query = User::withCount('posts')->latest();
+
+        if (!$authUser->isAdmin()) {
+            $query->where('role', 'student');
+        }
+
+        return response()->json(UserResource::collection($query->get()));
     }
 
-    // 👀 GET /api/users/{id} (Public profile)
-    public function show(int $id): JsonResponse
+    public function show(string $id): JsonResponse
     {
-        $user = User::select('id', 'name', 'avatar', 'role', 'class_code_id', 'created_at')
+        $user = User::withCount(['posts', 'comments'])
+            ->withCount([
+                'posts as photos_count' => function ($query) {
+                    $query->join('media', 'posts.id', '=', 'media.post_id');
+                },
+            ])
             ->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $user,
-        ]);
+        return response()->json(new UserResource($user));
     }
 
-    // 👀 GET /api/users/{id}/posts (Public posts)
     public function posts(string $id): JsonResponse
     {
-        $posts = Post::where('user_id', $id)
-            ->with('user:id,name,avatar')
-            ->latest()
-            ->get();
+        User::findOrFail($id);
 
-        return response()->json($posts);
+        $posts = Post::with(['user', 'media'])
+            ->withCount(['reactions', 'comments'])
+            ->where('user_id', $id)
+            ->latest()
+            ->paginate(12);
+
+        return response()->json(PostResource::collection($posts));
     }
 
-    // ✏️ UPDATE profile (owner OR admin only)
     public function update(Request $request, string $id): JsonResponse
     {
         $authUser = $request->user();
         $user = User::findOrFail($id);
 
-        // 🔒 Permission check
         if ($authUser->id !== $user->id && !$authUser->isAdmin()) {
             abort(403, 'You cannot edit this profile');
         }
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'avatar' => 'nullable|string',
+            'bio' => 'nullable|string|max:500',
         ]);
 
         $user->update($validated);
 
         return response()->json([
             'message' => 'Profile updated successfully',
-            'user' => $user
+            'user' => new UserResource($user),
         ]);
     }
 
-    public function updateRole(Request $request, $id)
+    public function updateRole(Request $request, $id): JsonResponse
     {
         $user = User::findOrFail($id);
 
         $request->validate([
-            'role' => 'required|in:admin,student,user'
+            'role' => 'required|in:admin,student,user',
         ]);
 
         $user->role = $request->role;
@@ -79,11 +85,10 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Role updated successfully',
-            'user' => $user
+            'user' => new UserResource($user),
         ]);
     }
 
-    // 🗑️ DELETE user (admin only)
     public function destroy(Request $request, string $id): JsonResponse
     {
         abort_unless($request->user()?->isAdmin(), 403);
@@ -92,7 +97,7 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json([
-            'message' => 'User deleted successfully'
+            'message' => 'User deleted successfully',
         ]);
     }
 }

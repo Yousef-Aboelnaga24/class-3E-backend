@@ -15,76 +15,52 @@ use App\Http\Controllers\{
 };
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Public Auth
-|--------------------------------------------------------------------------
-*/
-
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/email/verify/{id}', [AuthController::class, 'verifyEmail'])
     ->name('verification.verify');
 
-/*
-|--------------------------------------------------------------------------
-| Protected
-|--------------------------------------------------------------------------
-*/
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    /*
-    | Auth
-    */
+    // 🔐 auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 
-    /*
-    | Profile (self only)
-    */
+    // 👤 profile (self)
     Route::post('/profile', [ProfileController::class, 'update']);
 
-    /*
-    | Users (public view inside auth)
-    */
+    // 👥 users (students for users, all for admin)
+    Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{id}', [UserController::class, 'show']);
     Route::get('/users/{id}/posts', [UserController::class, 'posts']);
 
-    /*
-    | ADMIN ONLY USERS MANAGEMENT
-    */
+    // 👑 ADMIN ONLY
     Route::middleware('role:admin')->group(function () {
 
-        Route::get('/users', [UserController::class, 'index']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
-        // 🔥 role update
         Route::post('/users/{id}/role', [UserController::class, 'updateRole']);
 
-        // class codes
         Route::post('/class-codes', [ClassCodeController::class, 'store']);
         Route::get('/class-codes', [ClassCodeController::class, 'index']);
         Route::delete('/class-codes/{classCode}', [ClassCodeController::class, 'destroy']);
 
-        // timeline
-        Route::post('/timeline', [TimelineEventController::class, 'store']);
     });
 
-    /*
-    | Timeline (public view inside auth)
-    */
+    Route::middleware('role:student,admin')->group(function () {
+        Route::post('/timeline', [TimelineEventController::class, 'store']);
+        Route::put('/timeline/{timelineEvent}', [TimelineEventController::class, 'update']);
+        Route::delete('/timeline/{timelineEvent}', [TimelineEventController::class, 'destroy']);
+    });
+
+    // 📌 timeline (read)
     Route::get('/timeline', [TimelineEventController::class, 'index']);
 
-    /*
-    | Confessions
-    */
+    // 💬 confessions
     Route::get('/confessions', [ConfessionController::class, 'index']);
     Route::post('/confessions', [ConfessionController::class, 'store']);
 
-    /*
-    | Posts (student + admin)
-    */
+    // 📝 posts
     Route::get('/posts', [PostController::class, 'index']);
     Route::get('/posts/{post}', [PostController::class, 'show']);
 
@@ -97,28 +73,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])
         ->middleware('role:student,admin');
 
-    /*
-    | Comments
-    */
+    // 💬 comments
     Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
     Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 
-    /*
-    | Reactions
-    */
+    // ❤️ reactions
     Route::post('/posts/{post}/react', [ReactionController::class, 'toggle']);
 
-    /*
-    | Messages
-    */
+    // 📩 messages
     Route::get('/messages/received', [MessageController::class, 'received']);
     Route::get('/messages/sent', [MessageController::class, 'sent']);
     Route::post('/messages', [MessageController::class, 'store']);
 
-    /*
-    | Notifications
-    */
+    // 🔔 notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
