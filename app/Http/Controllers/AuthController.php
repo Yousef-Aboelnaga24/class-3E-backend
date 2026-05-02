@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Models\ClassCode;
 use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Auth\Events\Registered;
@@ -41,6 +42,19 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials.'],
             ]);
+        }
+
+        if ($request->filled('class_code')) {
+            $classCode = ClassCode::query()
+                ->where('code', strtoupper(trim($request->string('class_code')->toString())))
+                ->valid()
+                ->first();
+
+            if (!$classCode || $user->class_code_id !== $classCode->id) {
+                throw ValidationException::withMessages([
+                    'class_code' => ['Invalid class code for this account.'],
+                ]);
+            }
         }
 
         if (!$user->hasVerifiedEmail()) {

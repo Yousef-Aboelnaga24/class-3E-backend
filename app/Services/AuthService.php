@@ -6,6 +6,7 @@ use App\Models\ClassCode;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
@@ -14,16 +15,18 @@ class AuthService
         $classCode = null;
         $role = 'user';
 
-        if (!empty($data['class_code'])) {
-            $classCode = ClassCode::query()
-                ->where('code', $data['class_code'])
-                ->valid()
-                ->first();
+        $classCode = ClassCode::query()
+            ->where('code', strtoupper(trim($data['class_code'])))
+            ->valid()
+            ->first();
 
-            if ($classCode) {
-                $role = 'student';
-            }
+        if (!$classCode) {
+            throw ValidationException::withMessages([
+                'class_code' => ['Invalid or expired class code.'],
+            ]);
         }
+
+        $role = 'student';
 
         $user = User::create([
             'name' => $data['name'],

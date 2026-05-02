@@ -16,7 +16,7 @@ class ClassCodeService
     public function create(array $data, User $admin): ClassCode
     {
         return ClassCode::create([
-            'code' => $data['code'],
+            'code' => strtoupper(trim($data['code'])),
             'created_by' => $admin->id,
             'is_active' => $data['is_active'] ?? true,
             'expires_at' => $data['expires_at'] ?? null,
