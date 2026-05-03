@@ -15,25 +15,29 @@ class AuthService
         $classCode = null;
         $role = 'user';
 
-        $classCode = ClassCode::query()
-            ->where('code', strtoupper(trim($data['class_code'])))
-            ->valid()
-            ->first();
+        // ✅ بس نفذ لو فيه class_code
+        if (!empty($data['class_code'])) {
 
-        if (!$classCode) {
-            throw ValidationException::withMessages([
-                'class_code' => ['Invalid or expired class code.'],
-            ]);
+            $classCode = ClassCode::query()
+                ->where('code', strtoupper(trim($data['class_code'])))
+                ->valid()
+                ->first();
+
+            if (!$classCode) {
+                throw ValidationException::withMessages([
+                    'class_code' => ['Invalid or expired class code.'],
+                ]);
+            }
+
+            $role = 'student';
         }
-
-        $role = 'student';
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => $role,
-            'class_code_id' => $classCode?->id,
+            'class_code_id' => $classCode?->id, // هتبقى null عادي
         ]);
 
         Log::info('User role assigned on registration', [
