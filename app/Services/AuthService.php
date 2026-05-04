@@ -15,7 +15,6 @@ class AuthService
         $classCode = null;
         $role = 'user';
 
-        // ✅ بس نفذ لو فيه class_code
         if (!empty($data['class_code'])) {
 
             $classCode = ClassCode::query()

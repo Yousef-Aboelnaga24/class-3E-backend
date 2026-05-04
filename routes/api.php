@@ -17,15 +17,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/email/verify/{id}', [AuthController::class, 'verifyEmail'])
-    ->name('verification.verify');
+// Route::get('/email/verify/{id}', [AuthController::class, 'verifyEmail'])
+//     ->name('verification.verify');
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
     // 🔐 auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-    Route::post('/email/resend', [AuthController::class, 'resendVerification']);
+    // Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 
     // 👤 profile (self)
     Route::post('/profile', [ProfileController::class, 'update']);

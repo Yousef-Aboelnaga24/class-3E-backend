@@ -23,7 +23,7 @@ class AuthController extends Controller
     {
         $user = $this->authService->register($request->validated());
 
-        event(new Registered($user));
+        // event(new Registered($user));
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -57,9 +57,9 @@ class AuthController extends Controller
             }
         }
 
-        if (!$user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Please verify your email address.'], 403);
-        }
+        // if (!$user->hasVerifiedEmail()) {
+        //     return response()->json(['message' => 'Please verify your email address.'], 403);
+        // }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -82,29 +82,29 @@ class AuthController extends Controller
         return new UserResource($request->user());
     }
 
-    public function verifyEmail($id): JsonResponse
-    {
-        $user = User::findOrFail($id);
+    // public function verifyEmail($id): JsonResponse
+    // {
+    //     $user = User::findOrFail($id);
 
-        if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.']);
-        }
+    //     if ($user->hasVerifiedEmail()) {
+    //         return response()->json(['message' => 'Email already verified.']);
+    //     }
 
-        if ($user->markEmailAsVerified()) {
-            event(new \Illuminate\Auth\Events\Verified($user));
-        }
+    //     if ($user->markEmailAsVerified()) {
+    //         event(new \Illuminate\Auth\Events\Verified($user));
+    //     }
 
-        return response()->json(['message' => 'Email verified successfully.']);
-    }
+    //     return response()->json(['message' => 'Email verified successfully.']);
+    // }
 
-    public function resendVerification(Request $request): JsonResponse
-    {
-        if ($request->user()->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.']);
-        }
+    // public function resendVerification(Request $request): JsonResponse
+    // {
+    //     if ($request->user()->hasVerifiedEmail()) {
+    //         return response()->json(['message' => 'Email already verified.']);
+    //     }
 
-        $request->user()->sendEmailVerificationNotification();
+    //     $request->user()->sendEmailVerificationNotification();
 
-        return response()->json(['message' => 'Verification link sent.']);
-    }
+    //     return response()->json(['message' => 'Verification link sent.']);
+    // }
 }
